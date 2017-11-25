@@ -298,8 +298,8 @@ func (p *Proxy) RefreshDestinations(serviceName string, ring *consistent.Consist
 	p.Statsd.TimeInMilliseconds("discoverer.update_duration_ns", float64(time.Since(start).Nanoseconds()), []string{fmt.Sprintf("service:%s", serviceName)}, 1.0)
 	if err != nil || len(destinations) == 0 {
 		log.WithError(err).WithFields(logrus.Fields{
-			"service": serviceName,
-			"errorType": reflect.TypeOf(err),
+			"service":         serviceName,
+			"errorType":       reflect.TypeOf(err),
 			"numDestinations": len(destinations),
 		}).Error("Discoverer returned an error, destinations may be stale!")
 		p.Statsd.Incr("discoverer.errors", []string{fmt.Sprintf("service:%s", serviceName)}, 1.0)
