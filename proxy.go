@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"reflect"
 	"strconv"
 	"sync"
 	"syscall"
@@ -95,21 +96,21 @@ func NewProxyFromConfig(logger *logrus.Logger, conf ProxyConfig) (p Proxy, err e
 		p.AcceptingTraces = true
 	}
 
-	// check if we are running on Kubernetes
-	if _, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount"); !os.IsNotExist(err) {
-        log.Info("Using Kubernetes")
-		p.usingKubernetes = true
-
-        //TODO don't overload this
-        if conf.ConsulForwardServiceName != ""{
-            p.AcceptingForwards = true
-        }
-	}
-
 	// We need a convenient way to know if we're even using Consul later
 	if p.ConsulForwardService != "" || p.ConsulTraceService != "" {
-        log.Info("Using consul")
+		log.Info("Using consul")
 		p.usingConsul = true
+	}
+
+	// check if we are running on Kubernetes
+	if _, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount"); !os.IsNotExist(err) {
+		log.Info("Using Kubernetes")
+		p.usingKubernetes = true
+
+		//TODO don't overload this
+		if conf.ConsulForwardServiceName != "" {
+			p.AcceptingForwards = true
+		}
 	}
 
 	p.ForwardDestinations = consistent.New()
@@ -177,23 +178,21 @@ func (p *Proxy) Start() {
 	config.HttpClient = p.HTTPClient
 
 	if p.usingKubernetes {
-        disc, err := NewKubernetesDiscoverer()
-        if err != nil {
-            log.WithError(err).Error("Error creating KubernetesDiscoverer")
-            return
-        }
-        p.Discoverer = disc
-        log.Info("Set Kubernetes discoverer")
-	}
-
-	if p.usingConsul {
+		disc, err := NewKubernetesDiscoverer()
+		if err != nil {
+			log.WithError(err).Error("Error creating KubernetesDiscoverer")
+			return
+		}
+		p.Discoverer = disc
+		log.Info("Set Kubernetes discoverer")
+	} else if p.usingConsul {
 		disc, consulErr := NewConsul(config)
 		if consulErr != nil {
 			log.WithError(consulErr).Error("Error creating Consul discoverer")
 			return
 		}
 		p.Discoverer = disc
-        log.Info("Set Consul discoverer")
+		log.Info("Set Consul discoverer")
 	}
 
 	if p.AcceptingForwards && p.ConsulForwardService != "" {
@@ -211,17 +210,18 @@ func (p *Proxy) Start() {
 	}
 
 	if p.usingConsul || p.usingKubernetes {
+		log.Info("Creating update goroutine")
 		go func() {
 			defer func() {
 				ConsumePanic(p.Sentry, p.Statsd, p.Hostname, recover())
 			}()
 			ticker := time.NewTicker(p.ConsulInterval)
 			for range ticker.C {
-                log.WithFields(logrus.Fields{
-                    "acceptingForwards": p.AcceptingForwards,
-                    "consulForwardService": p.ConsulForwardService,
-                    "consulTraceService": p.ConsulTraceService,
-                }).Info("About to refresh destinations")
+				log.WithFields(logrus.Fields{
+					"acceptingForwards":    p.AcceptingForwards,
+					"consulForwardService": p.ConsulForwardService,
+					"consulTraceService":   p.ConsulTraceService,
+				}).Info("About to refresh destinations")
 				if p.AcceptingForwards && p.ConsulForwardService != "" {
 					p.RefreshDestinations(p.ConsulForwardService, p.ForwardDestinations, &p.ForwardDestinationsMtx)
 				}
@@ -283,18 +283,24 @@ func (p *Proxy) HTTPServe() {
 // the latest data.
 func (p *Proxy) RefreshDestinations(serviceName string, ring *consistent.Consistent, mtx *sync.Mutex) {
 
+	log.WithFields(logrus.Fields{
+		"discovererType": reflect.TypeOf(p.Discoverer),
+		"serviceName":    serviceName,
+	}).Info("Refreshing destinations")
 	start := time.Now()
 	destinations, err := p.Discoverer.GetDestinationsForService(serviceName)
 
-    log.WithFields(logrus.Fields{
-        "destinations": destinations,
-        "service": serviceName,
-    }).Info("Got destinations")
-
+	log.WithFields(logrus.Fields{
+		"destinations": destinations,
+		"service":      serviceName,
+	}).Info("Got destinations")
 
 	p.Statsd.TimeInMilliseconds("discoverer.update_duration_ns", float64(time.Since(start).Nanoseconds()), []string{fmt.Sprintf("service:%s", serviceName)}, 1.0)
 	if err != nil || len(destinations) == 0 {
-		log.WithError(err).WithField("service", serviceName).Error("Discoverer returned an error, destinations may be stale!")
+		log.WithError(err).WithFields(logrus.Fields{
+			"service": serviceName,
+			"errorType": reflect.TypeOf(err),
+		}).Error("Discoverer returned an error, destinations may be stale!")
 		p.Statsd.Incr("discoverer.errors", []string{fmt.Sprintf("service:%s", serviceName)}, 1.0)
 		// Return since we got no hosts. We don't want to zero out the list. This
 		// should result in us leaving the "last good" values in the ring.
