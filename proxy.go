@@ -83,6 +83,10 @@ func NewProxyFromConfig(logger *logrus.Logger, conf ProxyConfig) (p Proxy, err e
 		return
 	}
 	p.Statsd.Namespace = "veneur_proxy."
+	log.WithFields(logrus.Fields{
+		"address":   conf.StatsAddress,
+		"namespace": p.Statsd.Namespace,
+	}).Info("Configured metrics client")
 
 	p.enableProfiling = conf.EnableProfiling
 
@@ -429,12 +433,16 @@ func (p *Proxy) doPost(ctx context.Context, wg *sync.WaitGroup, destination stri
 		return
 	}
 
-	err := vhttp.PostHelper(ctx, p.HTTPClient, p.Statsd, p.traceClient, http.MethodPost, fmt.Sprintf("%s/import", destination), batch, "forward", true, log)
+	endpoint := fmt.Sprintf("%s/import", destination)
+	err := vhttp.PostHelper(ctx, p.HTTPClient, p.Statsd, p.traceClient, http.MethodPost, endpoint, batch, "forward", true, log)
 	if err == nil {
 		log.WithField("metrics", batchSize).Debug("Completed forward to upstream Veneur")
 	} else {
 		p.Statsd.Count("forward.error_total", 1, []string{"cause:post"}, 1.0)
-		log.WithError(err).Warn("Failed to POST metrics to destination")
+		log.WithError(err).WithFields(logrus.Fields{
+			"endpoint":  endpoint,
+			"batchSize": batchSize,
+		}).Warn("Failed to POST metrics to destination")
 	}
 	p.Statsd.Gauge("metrics_by_destination", float64(batchSize), []string{fmt.Sprintf("destination:%s", destination)}, 1.0)
 }
