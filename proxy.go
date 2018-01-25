@@ -102,7 +102,10 @@ func NewProxyFromConfig(logger *logrus.Logger, conf ProxyConfig) (p Proxy, err e
 
 	// We need a convenient way to know if we're even using Consul later
 	if p.ConsulForwardService != "" || p.ConsulTraceService != "" {
-		log.Info("Using consul")
+		log.WithFields(logrus.Fields{
+			"consulForwardService": p.ConsulForwardService,
+			"consulTraceService":   p.ConsulTraceService,
+		}).Info("Using consul for service discovery")
 		p.usingConsul = true
 	}
 
@@ -287,17 +290,8 @@ func (p *Proxy) HTTPServe() {
 // the latest data.
 func (p *Proxy) RefreshDestinations(serviceName string, ring *consistent.Consistent, mtx *sync.Mutex) {
 
-	log.WithFields(logrus.Fields{
-		"discovererType": reflect.TypeOf(p.Discoverer),
-		"serviceName":    serviceName,
-	}).Info("Refreshing destinations")
 	start := time.Now()
 	destinations, err := p.Discoverer.GetDestinationsForService(serviceName)
-
-	log.WithFields(logrus.Fields{
-		"destinations": destinations,
-		"service":      serviceName,
-	}).Info("Got destinations")
 
 	p.Statsd.TimeInMilliseconds("discoverer.update_duration_ns", float64(time.Since(start).Nanoseconds()), []string{fmt.Sprintf("service:%s", serviceName)}, 1.0)
 	if err != nil || len(destinations) == 0 {
