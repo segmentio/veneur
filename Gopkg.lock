@@ -50,10 +50,9 @@
   version = "v1.12.67"
 
 [[projects]]
-  branch = "master"
   name = "github.com/axiomhq/hyperloglog"
   packages = ["."]
-  revision = "baba800be098d9f4303352fa6214a933e371e3da"
+  revision = "8300947202c9fbce15a5a299b27c8b0f5092a520"
 
 [[projects]]
   name = "github.com/certifi/gocertifi"
@@ -66,6 +65,12 @@
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dgryski/go-bits"
+  packages = ["."]
+  revision = "bd8a69a71dc203aa976f9d918b428db9ac605f57"
 
 [[projects]]
   branch = "master"
@@ -644,6 +649,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8d48c78a963cea3157db845dd2f2514e5fcce0dd2f40ab9bd4a8ec93eb231338"
+  inputs-digest = "661788763fd958e55f6fec7b0e41a931a0830523c6fd6eac36ceab8e9bea6abe"
   solver-name = "gps-cdcl"
   solver-version = 1
