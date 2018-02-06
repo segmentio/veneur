@@ -228,7 +228,7 @@ func (p *Proxy) Start() {
 					"acceptingForwards":    p.AcceptingForwards,
 					"consulForwardService": p.ConsulForwardService,
 					"consulTraceService":   p.ConsulTraceService,
-				}).Info("About to refresh destinations")
+				}).Debug("About to refresh destinations")
 				if p.AcceptingForwards && p.ConsulForwardService != "" {
 					p.RefreshDestinations(p.ConsulForwardService, p.ForwardDestinations, &p.ForwardDestinationsMtx)
 				}
@@ -430,7 +430,7 @@ func (p *Proxy) doPost(ctx context.Context, wg *sync.WaitGroup, destination stri
 	endpoint := fmt.Sprintf("%s/import", destination)
 	err := vhttp.PostHelper(ctx, p.HTTPClient, p.Statsd, p.traceClient, http.MethodPost, endpoint, batch, "forward", true, log)
 	if err == nil {
-		log.WithField("metrics", batchSize).Debug("Completed forward to upstream Veneur")
+		log.WithField("metrics", batchSize).Info("Completed forward to upstream Veneur")
 	} else {
 		p.Statsd.Count("forward.error_total", 1, []string{"cause:post"}, 1.0)
 		log.WithError(err).WithFields(logrus.Fields{
