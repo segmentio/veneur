@@ -1,3 +1,9 @@
+# 2.0.0-segment2, 2018-02-14
+
+## Bugfixes
+* S3 bucket name was hardcoded, now uses the configuration setting. Thanks, [andreiko](https://github.com/andreiko)!
+* S3 and localfile plugins were reporting all count metrics as +Inf due to zero interval. Thanks, [andreiko](https://github.com/andreiko)! 
+
 # 2.0.0, 2018-01-09
 
 ## Incompatible changes
