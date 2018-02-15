@@ -1,3 +1,8 @@
+# 2.0.0-segment3, 2018-02-14
+
+## Improvements
+* Allow using s3 plugin with EC2 instance and ECS task roles
+
 # 2.0.0-segment2, 2018-02-14
 
 ## Bugfixes
