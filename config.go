@@ -7,6 +7,7 @@ type Config struct {
 	AwsRegion                     string    `yaml:"aws_region"`
 	AwsS3Bucket                   string    `yaml:"aws_s3_bucket"`
 	AwsSecretAccessKey            string    `yaml:"aws_secret_access_key"`
+	AwsRemoteCredentials          bool      `yaml:"aws_remote_credentials"`
 	DatadogAPIHostname            string    `yaml:"datadog_api_hostname"`
 	DatadogAPIKey                 string    `yaml:"datadog_api_key"`
 	DatadogTraceAPIAddress        string    `yaml:"datadog_trace_api_address"`

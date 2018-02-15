@@ -30,6 +30,7 @@ import (
 
 	"github.com/pkg/profile"
 
+	"github.com/aws/aws-sdk-go/aws/defaults"
 	"github.com/stripe/veneur/plugins"
 	localfilep "github.com/stripe/veneur/plugins/localfile"
 	s3p "github.com/stripe/veneur/plugins/s3"
@@ -415,11 +416,26 @@ func NewFromConfig(conf Config) (*Server, error) {
 	var svc s3iface.S3API
 	awsID := conf.AwsAccessKeyID
 	awsSecret := conf.AwsSecretAccessKey
+	awsBucket := conf.AwsS3Bucket
+	awsRegion := conf.AwsRegion
+	awsRemoteCredentials := conf.AwsRemoteCredentials
 
-	if len(awsID) > 0 && len(awsSecret) > 0 {
+	if len(awsBucket) > 0 && len(awsRegion) > 0 && (len(awsID) > 0 && len(awsSecret) > 0 || awsRemoteCredentials) {
+		providers := make([]credentials.Provider, 0, 1)
+		if awsRemoteCredentials {
+			providers = append(providers, defaults.RemoteCredProvider(*defaults.Config(), defaults.Handlers()))
+		} else {
+			providers = append(providers, &credentials.StaticProvider{
+				Value: credentials.Value{
+					AccessKeyID:     awsID,
+					SecretAccessKey: awsSecret,
+				},
+			})
+		}
+
 		sess, err := session.NewSession(&aws.Config{
-			Region:      aws.String(conf.AwsRegion),
-			Credentials: credentials.NewStaticCredentials(awsID, awsSecret, ""),
+			Region:      aws.String(awsRegion),
+			Credentials: credentials.NewChainCredentials(providers),
 		})
 
 		if err != nil {
@@ -432,7 +448,7 @@ func NewFromConfig(conf Config) (*Server, error) {
 			plugin := &s3p.S3Plugin{
 				Logger:   log,
 				Svc:      svc,
-				S3Bucket: conf.AwsS3Bucket,
+				S3Bucket: awsBucket,
 				Hostname: ret.Hostname,
 				Interval: ret.interval.Seconds(),
 			}
