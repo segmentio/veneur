@@ -51,6 +51,7 @@ type Config struct {
 	SsfBufferSize                 int       `yaml:"ssf_buffer_size"`
 	SsfListenAddresses            []string  `yaml:"ssf_listen_addresses"`
 	StatsAddress                  string    `yaml:"stats_address"`
+	StatsNamespace                string    `yaml:"stats_namespace"`
 	StatsdListenAddresses         []string  `yaml:"statsd_listen_addresses"`
 	SynchronizeWithInterval       bool      `yaml:"synchronize_with_interval"`
 	Tags                          []string  `yaml:"tags"`

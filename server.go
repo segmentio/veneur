@@ -173,6 +173,9 @@ func NewFromConfig(conf Config) (*Server, error) {
 		return ret, err
 	}
 	ret.Statsd.Namespace = "veneur."
+	if conf.StatsNamespace != "" {
+		ret.Statsd.Namespace = conf.StatsNamespace
+	}
 	ret.Statsd.Tags = append(ret.Tags, "veneurlocalonly")
 
 	// nil is a valid sentry client that noops all methods, if there is no DSN
@@ -447,6 +450,7 @@ func NewFromConfig(conf Config) (*Server, error) {
 
 			plugin := &s3p.S3Plugin{
 				Logger:   log,
+				Statsd:   ret.Statsd,
 				Svc:      svc,
 				S3Bucket: awsBucket,
 				Hostname: ret.Hostname,

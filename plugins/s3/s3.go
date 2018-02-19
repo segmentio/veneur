@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -26,6 +27,7 @@ var _ plugins.Plugin = &S3Plugin{}
 
 type S3Plugin struct {
 	Logger   *logrus.Logger
+	Statsd   *statsd.Client
 	Svc      s3iface.S3API
 	S3Bucket string
 	Hostname string
@@ -42,6 +44,7 @@ func (p *S3Plugin) Flush(ctx context.Context, metrics []samplers.InterMetric) er
 			logrus.ErrorKey: err,
 			"metrics":       len(metrics),
 		}).Error("Could not marshal metrics before posting to s3")
+		p.Statsd.Incr("s3.error", []string{"type:encode"}, 1)
 		return err
 	}
 
@@ -51,10 +54,12 @@ func (p *S3Plugin) Flush(ctx context.Context, metrics []samplers.InterMetric) er
 			logrus.ErrorKey: err,
 			"metrics":       len(metrics),
 		}).Error("Error posting to s3")
+		p.Statsd.Incr("s3.error", []string{"type:post"}, 1)
 		return err
 	}
 
 	p.Logger.WithField("metrics", len(metrics)).Debug("Completed flush to s3")
+	p.Statsd.Incr("s3.flushed", nil, 1)
 	return nil
 }
 
