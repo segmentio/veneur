@@ -1,3 +1,9 @@
+# 2.0.0-segment4, 2018-02-19
+
+## Improvements
+* Sending metrics from the s3 plugin
+* Added configurable stats namespace
+
 # 2.0.0-segment3, 2018-02-14
 
 ## Improvements
