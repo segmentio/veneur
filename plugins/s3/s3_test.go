@@ -146,7 +146,8 @@ func TestEncodeDDMetricsCSV(t *testing.T) {
 		metrics[i] = tc.InterMetric
 	}
 
-	c, err := EncodeInterMetricsCSV(metrics, Delimiter, true, VeneurHostname, 10)
+	tags := []string{"env:stage", "cluster:apps"}
+	c, err := EncodeInterMetricsCSV(metrics, Delimiter, true, VeneurHostname, 10, tags)
 	assert.NoError(t, err)
 	gzr, err := gzip.NewReader(c)
 	assert.NoError(t, err)

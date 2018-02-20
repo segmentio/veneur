@@ -455,6 +455,7 @@ func NewFromConfig(conf Config) (*Server, error) {
 				S3Bucket: awsBucket,
 				Hostname: ret.Hostname,
 				Interval: ret.interval.Seconds(),
+				Tags:     ret.Tags,
 			}
 			ret.registerPlugin(plugin)
 		}
@@ -473,6 +474,7 @@ func NewFromConfig(conf Config) (*Server, error) {
 			FilePath: conf.FlushFile,
 			Logger:   log,
 			Interval: ret.interval.Seconds(),
+			Tags:     ret.Tags,
 		}
 		ret.registerPlugin(localFilePlugin)
 		log.Info(fmt.Sprintf("Local file logging to %s", conf.FlushFile))

@@ -38,7 +38,7 @@ func TestAppendToWriter(t *testing.T) {
 		},
 	}
 
-	err := appendToWriter(b, metrics, "globblestoots", 10)
+	err := appendToWriter(b, metrics, "globblestoots", 10, nil)
 	assert.NoError(t, err)
 	assert.NotEqual(t, b.Len(), 0)
 }
@@ -54,7 +54,7 @@ func TestHandlesErrorsInAppendToWriter(t *testing.T) {
 			Tags:      []string{"skepticism:high"},
 			Type:      samplers.GaugeMetric,
 		},
-	}, "globblestoots", 10)
+	}, "globblestoots", 10, nil)
 
 	assert.Error(t, err)
 }

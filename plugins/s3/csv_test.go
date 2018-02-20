@@ -16,6 +16,7 @@ import (
 
 type CSVTestCase struct {
 	Name        string
+	Tags        []string
 	InterMetric samplers.InterMetric
 	Row         io.Reader
 }
@@ -35,7 +36,8 @@ func CSVTestCases() []CSVTestCase {
 					"baz:quz"},
 				Type: samplers.GaugeMetric,
 			},
-			Row: strings.NewReader(fmt.Sprintf("a.b.c.max\t{foo:bar,baz:quz}\tgauge\ttestbox-c3eac9\t10\t2016-10-10 05:04:18\t100\t%s\n", partition)),
+			Tags: []string{"env:stage", "cluster:apps"},
+			Row:  strings.NewReader(fmt.Sprintf("a.b.c.max\t{env:stage,cluster:apps,foo:bar,baz:quz}\tgauge\ttestbox-c3eac9\t10\t2016-10-10 05:04:18\t100\t%s\n", partition)),
 		},
 		{
 			// Test that we are able to handle a missing field (DeviceName)
@@ -48,7 +50,8 @@ func CSVTestCases() []CSVTestCase {
 					"baz:quz"},
 				Type: samplers.CounterMetric,
 			},
-			Row: strings.NewReader(fmt.Sprintf("a.b.c.max\t{foo:bar,baz:quz}\trate\ttestbox-c3eac9\t10\t2016-10-10 05:04:18\t10\t%s\n", partition)),
+			Tags: []string{"env:stage", "cluster:apps"},
+			Row:  strings.NewReader(fmt.Sprintf("a.b.c.max\t{env:stage,cluster:apps,foo:bar,baz:quz}\trate\ttestbox-c3eac9\t10\t2016-10-10 05:04:18\t10\t%s\n", partition)),
 		},
 		{
 			// Test that we are able to handle tags which have tab characters in them
@@ -63,7 +66,8 @@ func CSVTestCases() []CSVTestCase {
 					"baz:quz"},
 				Type: samplers.CounterMetric,
 			},
-			Row: strings.NewReader(fmt.Sprintf("a.b.c.count\t\"{foo:b\tar,baz:quz}\"\trate\ttestbox-c3eac9\t10\t2016-10-10 05:04:18\t10\t%s\n", partition)),
+			Tags: []string{"env:stage", "cluster:apps"},
+			Row:  strings.NewReader(fmt.Sprintf("a.b.c.count\t\"{env:stage,cluster:apps,foo:b\tar,baz:quz}\"\trate\ttestbox-c3eac9\t10\t2016-10-10 05:04:18\t10\t%s\n", partition)),
 		},
 	}
 }
@@ -80,7 +84,7 @@ func TestEncodeCSV(t *testing.T) {
 			w.Comma = '\t'
 
 			tm := time.Now()
-			err := EncodeInterMetricCSV(tc.InterMetric, w, &tm, "testbox-c3eac9", 10)
+			err := EncodeInterMetricCSV(tc.InterMetric, w, &tm, "testbox-c3eac9", 10, tc.Tags)
 			assert.NoError(t, err)
 
 			// We need to flush or there won't actually be any data there
