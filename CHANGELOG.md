@@ -1,3 +1,8 @@
+# 2.0.0-segment5, 2018-02-19
+
+## Improvements
+* Added tag injection support for s3 and localfile plugins
+
 # 2.0.0-segment4, 2018-02-19
 
 ## Improvements
