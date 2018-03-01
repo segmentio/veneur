@@ -12,7 +12,7 @@ import (
 )
 
 const PartitionDateFormat = "20060102"
-const RedshiftDateFormat = "2006-01-02 03:04:05"
+const RedshiftDateFormat = "2006-01-02 15:04:05"
 
 type tsvField int
 
