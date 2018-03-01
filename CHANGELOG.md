@@ -1,3 +1,8 @@
+# 2.0.0-segment6, 2018-03-01
+
+## Bugfixes
+* S3 plugin: use 24-hour format in timestamps
+
 # 2.0.0-segment5, 2018-02-19
 
 ## Improvements
