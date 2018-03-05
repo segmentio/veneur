@@ -1,3 +1,8 @@
+# 2.0.0-segment7, 2018-03-05
+
+## Improvements
+* Added configurable timestamp format for csv encoder
+
 # 2.0.0-segment6, 2018-03-01
 
 ## Bugfixes
