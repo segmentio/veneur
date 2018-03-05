@@ -12,7 +12,6 @@ import (
 )
 
 const PartitionDateFormat = "20060102"
-const RedshiftDateFormat = "2006-01-02 15:04:05"
 
 type tsvField int
 
@@ -53,7 +52,7 @@ var tsvSchema = [...]string{
 // The caller is responsible for setting w.Comma as the appropriate delimiter.
 // For performance, encodeCSV does not flush after every call; the caller is
 // expected to flush at the end of the operation cycle
-func EncodeInterMetricCSV(d samplers.InterMetric, w *csv.Writer, partitionDate *time.Time, hostName string, interval float64, tags []string) error {
+func EncodeInterMetricCSV(d samplers.InterMetric, w *csv.Writer, partitionDate *time.Time, hostName string, interval float64, timeFormat string, tags []string) error {
 	// TODO(aditya) some better error handling for this
 	// to guarantee that the result is proper JSON
 
@@ -89,7 +88,7 @@ func EncodeInterMetricCSV(d samplers.InterMetric, w *csv.Writer, partitionDate *
 		TsvVeneurHostname: hostName,
 		TsvValue:          strconv.FormatFloat(metricValue, 'f', -1, 64),
 
-		TsvTimestamp: time.Unix(d.Timestamp, 0).UTC().Format(RedshiftDateFormat),
+		TsvTimestamp: time.Unix(d.Timestamp, 0).UTC().Format(timeFormat),
 
 		// TODO avoid edge case at midnight
 		TsvPartition: partitionDate.UTC().Format(PartitionDateFormat),

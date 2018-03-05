@@ -423,6 +423,11 @@ func NewFromConfig(conf Config) (*Server, error) {
 	awsRegion := conf.AwsRegion
 	awsRemoteCredentials := conf.AwsRemoteCredentials
 
+	csvTimeFormat := "2006-01-02 15:04:05"
+	if conf.CsvTimeFormat != "" {
+		csvTimeFormat = conf.CsvTimeFormat
+	}
+
 	if len(awsBucket) > 0 && len(awsRegion) > 0 && (len(awsID) > 0 && len(awsSecret) > 0 || awsRemoteCredentials) {
 		providers := make([]credentials.Provider, 0, 1)
 		if awsRemoteCredentials {
@@ -449,13 +454,14 @@ func NewFromConfig(conf Config) (*Server, error) {
 			svc = s3.New(sess)
 
 			plugin := &s3p.S3Plugin{
-				Logger:   log,
-				Statsd:   ret.Statsd,
-				Svc:      svc,
-				S3Bucket: awsBucket,
-				Hostname: ret.Hostname,
-				Interval: ret.interval.Seconds(),
-				Tags:     ret.Tags,
+				Logger:     log,
+				Statsd:     ret.Statsd,
+				Svc:        svc,
+				S3Bucket:   awsBucket,
+				Hostname:   ret.Hostname,
+				Interval:   ret.interval.Seconds(),
+				Tags:       ret.Tags,
+				TimeFormat: csvTimeFormat,
 			}
 			ret.registerPlugin(plugin)
 		}
@@ -471,10 +477,11 @@ func NewFromConfig(conf Config) (*Server, error) {
 
 	if conf.FlushFile != "" {
 		localFilePlugin := &localfilep.Plugin{
-			FilePath: conf.FlushFile,
-			Logger:   log,
-			Interval: ret.interval.Seconds(),
-			Tags:     ret.Tags,
+			FilePath:   conf.FlushFile,
+			Logger:     log,
+			Interval:   ret.interval.Seconds(),
+			Tags:       ret.Tags,
+			TimeFormat: csvTimeFormat,
 		}
 		ret.registerPlugin(localFilePlugin)
 		log.Info(fmt.Sprintf("Local file logging to %s", conf.FlushFile))
