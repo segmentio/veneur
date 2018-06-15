@@ -1,3 +1,6 @@
+# 2.0.0-segmeng8, 2018-06-15
+* releasing fix for veneurlocalonly and veneurglobalonly
+
 # 6.1.0
 
 ## Updated
