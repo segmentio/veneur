@@ -1,4 +1,11 @@
+# 6.1.0
+
+## Updated
+* Metric sampler parse function now looks for `veneurlocalonly` and `veneurglobalonly` by prefix instead of direct equality for times where value can't/shouldn't be excluded even if it's blank. Thanks [joeybloggs](https://github.com/joeybloggs)
+
 # 2.0.0-segment7, 2018-03-05
+
+# 6.0.0
 
 ## Improvements
 * Added configurable timestamp format for csv encoder
